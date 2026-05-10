@@ -16,24 +16,24 @@ You only need Python 3 installed on your system.
 ### Installation by Distribution:
 * **Arch Linux:**
   ```bash
-    sudo pacman -S python
+  sudo pacman -S python
     ```
 * **Fedora:**
   ```bash
-    sudo dnf install python3
+  sudo dnf install python3
     ```
 * **Ubuntu / Debian:**
   ```bash
-    sudo apt install python3
+  sudo apt install python3
     ```
 ## 🔑 Permissions
 1.Add your user to the group
 ```bash
-   sudo usermod -aG input $USER
+sudo usermod -aG input $USER
   ```
 2.Restart your session
 ```bash
-   sudo reboot
+sudo reboot
   ```
 
 ## 📥 Installation
@@ -48,21 +48,21 @@ Place infinite-desktop.sh, infinite_desktop_core.py, and infinite-desktop-toggle
 
 3. **Grant execution permissions:**
   ```bash
-    chmod +x ~/scripts/infinite-desktop.sh ~/scripts/infinite-desktop-toggle.sh
+  chmod +x ~/scripts/infinite-desktop.sh ~/scripts/infinite-desktop-toggle.sh
   ```
 ## ⚙️ Configuration
 Add the following lines to your ~/.config/hypr/hyprland.conf:
 
 1. **Auto-start**
    ```bash
-     # Launch the infinite desktop daemon (replace 'your_user' with your actual username)
-     exec-once = /home/your_user/scripts/infinite-desktop.sh
+   # Launch the infinite desktop daemon (replace 'your_user' with your actual username)
+   exec-once = /home/your_user/scripts/infinite-desktop.sh
    ```
 2. **Keybindings**
    Add these binds to enable keyboard navigation between your floating windows:
    ```bash
-     bind = CTRL SUPER, right, exec, echo right > /tmp/infinite-nav
-     bind = CTRL SUPER, left, exec, echo left > /tmp/infinite-nav
+   bind = CTRL SUPER, right, exec, echo right > /tmp/infinite-nav
+   bind = CTRL SUPER, left, exec, echo left > /tmp/infinite-nav
    ```
 
 ## 🖱️ How to use
