@@ -10,13 +10,16 @@ A powerful script to transform your Hyprland workspace into an "infinite" canvas
 🛠️ Requirements
 You only need Python 3 installed on your system.
 ### Installation by Distribution:
-* **Arch Linux:** ```bash
+* **Arch Linux:**
+  ```bash
     sudo pacman -S python
     ```
-* **Fedora:** ```bash
+* **Fedora:**
+  ```bash
     sudo dnf install python3
     ```
-* **Ubuntu / Debian:** ```bash
+* **Ubuntu / Debian:**
+  ```bash
     sudo apt install python3
     ```
 ## 📥 Installation
@@ -25,3 +28,4 @@ You only need Python 3 installed on your system.
    All scripts must be stored in a dedicated folder in your home directory:
    ```bash
    mkdir -p ~/scripts
+   ```
