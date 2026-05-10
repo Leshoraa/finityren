@@ -56,5 +56,6 @@ Add the following lines to your ~/.config/hypr/hyprland.conf:
    ```
 
 ## 🖱️ How to use
--Panning: Hold ***SUPER + ALT + Left Click*** and move your mouse to slide the entire desktop.
--Navigation: Press ***CTRL + SUPER + Left/Right Arrow*** to center and focus the next floating window.
+ **Panning:** Hold ***SUPER + ALT + Left Click*** and move your mouse to slide the entire desktop.
+ 
+ **Navigation:** Press ***CTRL + SUPER + Left/Right Arrow*** to center and focus the next floating window.
