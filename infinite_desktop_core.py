@@ -13,7 +13,7 @@ KEY_LEFTCTRL=29; KEY_RIGHTCTRL=97
 KEY_LEFT=105; KEY_RIGHT=106
 BTN_LEFT=272
 
-STATE_FILE = "/tmp/infinite-desktop-state"
+STATE_FILE = "/tmp/infinite-desktop-state" #uhh i hate my life
 PROTECTED_APPS = ['brave-browser', 'chromium', 'chromium-browser', 'google-chrome', 
                   'firefox', 'firefoxdeveloperedition', 'librewolf', 'vivaldi', 
                   'opera', 'microsoft-edge']
@@ -172,7 +172,6 @@ def kbd_reader():
     global super_pressed, alt_pressed, ctrl_pressed
     
     fd = open(kbd_dev, 'rb')
-    # No use non-blocking
     while True:
         data = fd.read(EVENT_SIZE)
         if not data or len(data) < EVENT_SIZE: 
