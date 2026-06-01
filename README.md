@@ -1,5 +1,5 @@
 # finityren
-<img width="1600" height="1000" alt="WhatsApp Image 2026-06-01 at 22 13 37" src="https://github.com/user-attachments/assets/8075794c-c8d5-4bda-abf1-455ca669c808" />
+<img width="1600" height="1000" alt="finityren" src="https://github.com/user-attachments/assets/46595fe9-6822-4175-90bd-c6489de3ff54" />
 
 
 A highly optimized tool designed to transform your Hyprland workspace into an infinite canvas. This project refactors the core python daemon to introduce intelligent spatial navigation, tear-free window panning, and pixel-perfect absolute centering for all floating windows.
