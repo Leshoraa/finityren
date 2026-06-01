@@ -1,7 +1,6 @@
 # finityren
 <img width="1600" height="1000" alt="finityren" src="https://github.com/user-attachments/assets/46595fe9-6822-4175-90bd-c6489de3ff54" />
 
-
 A highly optimized tool designed to transform your Hyprland workspace into an infinite canvas. This project refactors the core python daemon to introduce intelligent spatial navigation, tear-free window panning, and pixel-perfect absolute centering for all floating windows.
 
 ## Why this fork? (Comparison with Original)
@@ -11,11 +10,12 @@ A highly optimized tool designed to transform your Hyprland workspace into an in
 | **Navigation Logic** | Array-index based (cycles like Alt-Tab, ignores visual layout). | True spatial geometry (Euclidean distance & cone-angle detection). |
 | **Window Movement** | Sequential dispatching (causes visual tearing/desync during rapid pans). | Atomic batch movements (`hyprctl --batch`) for perfect 1:1 synchronization. |
 | **Centering Accuracy** | Relative center (pushes windows off-center if a top-bar like Waybar is present). | Absolute physical monitor centering utilizing logical pixels. |
+| **Touchpad Support** | None (requires physical mouse clicks). | Native support for absolute-coordinate touchpads (touch-to-pan). |
 | **Terminal Output** | Spanish | English |
 
 ## Features
 
-- **Infinite Canvas Panning:** Move the entire layout of floating windows simultaneously by holding a modifier combination and moving the mouse.
+- **Infinite Canvas Panning:** Move the entire layout of floating windows simultaneously by holding a modifier combination and moving the mouse or touchpad.
 - **Intelligent Spatial Navigation:** Uses a directional geometric calculation to seamlessly transfer focus and fly to the physically closest window in the pressed direction.
 - **Synchronized Batch Movements:** Ensures all floating windows shift atomically in a single frame, preventing desynced window coordinates.
 - **Absolute Centering:** Calculates the exact physical center of the monitor, guaranteeing targeted windows align perfectly in the middle of the screen.
@@ -27,15 +27,15 @@ The core daemon requires Python 3 and root-level input access to monitor device 
 
 ### Dependencies
 * **Arch Linux:**
-```bash
+  ```bash
   sudo pacman -S python
   ```
 * **Fedora:**
-```bash
+  ```bash
   sudo dnf install python3
   ```
 * **Ubuntu / Debian:**
-```bash
+  ```bash
   sudo apt install python3
   ```
 
@@ -74,7 +74,8 @@ exec-once = ~/.config/hypr/UserScripts/infinite-desktop.sh
 
 ## Usage
 
-- **Panning:** Hold `SUPER + ALT + Left Click` and move the mouse to shift the entire canvas environment.
+- **Panning (Mouse):** Hold `SUPER + ALT + Left Click` and move the mouse.
+- **Panning (Touchpad):** Hold `SUPER + ALT` and slide your fingers on the touchpad (no click required).
 - **Navigation:** Press `SUPER + ALT + Up/Down/Left/Right Arrow` to fly directly to the nearest window located in that visual direction.
 
 ## License
