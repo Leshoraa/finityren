@@ -6,12 +6,15 @@ mouse_dev = sys.argv[2]
 speed     = float(sys.argv[3])
 EVENT_SIZE = struct.calcsize('llHHi')
 
-EV_KEY=1; EV_REL=2; REL_X=0; REL_Y=1
+EV_KEY=1; EV_REL=2; EV_ABS=3
+REL_X=0; REL_Y=1; ABS_X=0; ABS_Y=1
+
 KEY_LEFTMETA=125; KEY_RIGHTMETA=126
 KEY_LEFTALT=56; KEY_RIGHTALT=100
 KEY_LEFTCTRL=29; KEY_RIGHTCTRL=97
 KEY_UP=103; KEY_LEFT=105; KEY_RIGHT=106; KEY_DOWN=108
 BTN_LEFT=272
+BTN_TOUCH=330
 
 STATE_FILE = "/tmp/infinite-desktop-state"
 PROTECTED_APPS = ['brave-browser', 'chromium', 'chromium-browser', 'google-chrome',
@@ -42,7 +45,6 @@ def get_monitor_center():
                     cx = m['x'] + (m['width'] / scale) / 2.0
                     cy = m['y'] + (m['height'] / scale) / 2.0
                     return cx, cy
-            
             m = monitors[0]
             scale = m.get('scale', 1.0)
             cx = m['x'] + (m['width'] / scale) / 2.0
@@ -130,7 +132,6 @@ def change_focus(direction):
                 
             wx = w['at'][0] + w['size'][0] / 2.0
             wy = w['at'][1] + w['size'][1] / 2.0
-            
             dx = wx - fx
             dy = wy - fy
             dist = math.hypot(dx, dy)
@@ -217,6 +218,8 @@ def kbd_reader():
 
 def mouse_reader():
     global acc_x, acc_y, btn_left
+    last_abs_x = None
+    last_abs_y = None
     fd = open(mouse_dev, 'rb')
     while True:
         data = fd.read(EVENT_SIZE)
@@ -224,8 +227,16 @@ def mouse_reader():
             break
         _, _, etype, code, value = struct.unpack('llHHi', data)
         with lock:
-            if etype == EV_KEY and code == BTN_LEFT:
-                btn_left = (value == 1)
+            if etype == EV_KEY:
+                if code == BTN_LEFT:
+                    btn_left = (value == 1)
+                    if not btn_left:
+                        last_abs_x = None
+                        last_abs_y = None
+                elif code == BTN_TOUCH:
+                    if value == 0: 
+                        last_abs_x = None
+                        last_abs_y = None
             elif etype == EV_REL:
                 if super_pressed and alt_pressed and btn_left:
                     sign = -1 if read_inverted() else 1
@@ -233,6 +244,24 @@ def mouse_reader():
                         acc_x += value * speed * sign
                     elif code == REL_Y:
                         acc_y += value * speed * sign
+            elif etype == EV_ABS:
+                if super_pressed and alt_pressed:
+                    sign = -1 if read_inverted() else 1
+                    if code == ABS_X:
+                        if last_abs_x is not None:
+                            diff = value - last_abs_x
+                            if abs(diff) < 1500:
+                                acc_x += diff * speed * sign * 0.20
+                        last_abs_x = value
+                    elif code == ABS_Y:
+                        if last_abs_y is not None:
+                            diff = value - last_abs_y
+                            if abs(diff) < 1500:
+                                acc_y += diff * speed * sign * 0.20
+                        last_abs_y = value
+                else:
+                    last_abs_x = None
+                    last_abs_y = None
 
 print("Preloading...", flush=True)
 try:
@@ -248,8 +277,7 @@ threading.Thread(target=mouse_reader, daemon=True).start()
 while True:
     time.sleep(0.016)
     with lock:
-        active_drag = super_pressed and alt_pressed and btn_left
-        if not active_drag:
+        if not (super_pressed and alt_pressed):
             acc_x = 0.0
             acc_y = 0.0
             continue
