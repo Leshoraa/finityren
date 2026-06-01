@@ -51,7 +51,7 @@ sudo usermod -aG input $USER
 Clone the repository into your preferred directory and ensure execution permissions are granted to the shell scripts:
 
 ```bash
-git clone [https://github.com/Leshoraa/finityren.git](https://github.com/Leshoraa/finityren.git)
+git clone https://github.com/Leshoraa/finityren.git
 cd finityren
 chmod +x *.sh
 ```
