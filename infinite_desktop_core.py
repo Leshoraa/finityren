@@ -33,6 +33,7 @@ KEY_LEFT = 105
 KEY_RIGHT = 106
 KEY_DOWN = 108
 KEY_SPACE = 57
+KEY_F = 33
 BTN_LEFT = 272
 BTN_TOUCH = 330
 
@@ -40,7 +41,10 @@ STATE_FILE = "/tmp/infinite-desktop-state"
 PROTECTED_APPS = ['brave-browser', 'chromium', 'chromium-browser', 'google-chrome',
                   'firefox', 'firefoxdeveloperedition', 'librewolf', 'vivaldi',
                   'opera', 'microsoft-edge']
-GAP = 15
+GAP = 10
+PSEUDO_SCALE_W = 0.994
+PSEUDO_SCALE_H = 0.966
+BOTTOM_MARGIN = 6
 
 lock = threading.Lock()
 cache_lock = threading.Lock()
@@ -153,10 +157,20 @@ def pan_to_window(floating_windows, target_addr, center_x, center_y):
     target_window = next((w for w in floating_windows if w['address'] == target_addr), None)
     if not target_window:
         return
+    with cache_lock:
+        monitors = cached_monitors
+    mon = None
+    if monitors:
+        mon = next((m for m in monitors if m.get('focused', False)), monitors[0])
+    if mon:
+        scale = mon.get('scale', 1.0)
+        monitor_bottom_y = mon['y'] + (mon['height'] / scale)
+    else:
+        monitor_bottom_y = center_y * 2.0
     target_center_x = target_window['at'][0] + target_window['size'][0] / 2.0
-    target_center_y = target_window['at'][1] + target_window['size'][1] / 2.0
+    target_bottom_y = target_window['at'][1] + target_window['size'][1]
     dx = int(round(center_x - target_center_x))
-    dy = int(round(center_y - target_center_y))
+    dy = int(round((monitor_bottom_y - BOTTOM_MARGIN) - target_bottom_y))
     if dx == 0 and dy == 0:
         if not is_protected_app(target_window):
             subprocess.Popen(['hyprctl', 'dispatch', 'focuswindow', f'address:{target_addr}'], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
@@ -289,7 +303,7 @@ def kbd_reader():
                             threading.Thread(target=change_focus, args=('left',), daemon=True).start()
                         elif code == KEY_RIGHT:
                             threading.Thread(target=change_focus, args=('right',), daemon=True).start()
-                        elif code == KEY_SPACE:
+                        elif code in (KEY_SPACE, KEY_F):
                             def pseudo_fullscreen():
                                 try:
                                     r = subprocess.run(
@@ -309,8 +323,8 @@ def kbd_reader():
                                         monitors[0]
                                     )
                                     scale = mon.get('scale', 1)
-                                    w = int(mon['width'] / scale) - 1
-                                    h = int(mon['height'] / scale) - 1
+                                    w = int((mon['width'] / scale) * PSEUDO_SCALE_W)
+                                    h = int((mon['height'] / scale) * PSEUDO_SCALE_H)
                                     cmds = []
                                     if not win.get('floating', False):
                                         cmds.append(f"dispatch togglefloating address:{addr}")
