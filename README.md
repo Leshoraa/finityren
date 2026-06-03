@@ -11,7 +11,8 @@ A highly optimized tool designed to transform your Hyprland workspace into an in
 | **Window Movement** | Sequential dispatching (causes visual tearing/desync during rapid pans). | Atomic batch movements (`hyprctl --batch`) for perfect 1:1 synchronization. |
 | **Centering Accuracy** | Relative center (pushes windows off-center if a top-bar like Waybar is present). | Absolute physical monitor centering utilizing logical pixels. |
 | **Touchpad Support** | None (requires physical mouse clicks). | Native support for absolute-coordinate touchpads (touch-to-pan). |
-| **Terminal Output** | Spanish | English |
+| **Device Setup** | Manual configuration of raw event files (`/dev/input/event*`). | Automated zero-config input device detection (`auto` mode). |
+| **State & Performance** | Repeated expensive IPC requests on every movement tick. | Optimized state caching and event-driven background refresh. |
 
 ## Features
 
@@ -20,6 +21,10 @@ A highly optimized tool designed to transform your Hyprland workspace into an in
 - **Synchronized Batch Movements:** Ensures all floating windows shift atomically in a single frame, preventing desynced window coordinates.
 - **Absolute Centering:** Calculates the exact physical center of the monitor, guaranteeing targeted windows align perfectly in the middle of the screen.
 - **Application Protection:** Prevents specific applications (such as browsers) from losing focus accidentally during high-speed navigation.
+- **Zero-Config Input Detection:** Automatically detects mouse, touchpad, and keyboard devices without requiring manual path entry.
+- **State Caching & IPC Optimization:** Caches monitors and client states with background socket listeners to guarantee low latency and minimal resource usage.
+- **Pseudo-Fullscreen Support:** Toggle floating, automatically resize, and center windows with custom scaling metrics.
+- **Inverted Panning Toggle:** Toggle between normal and inverted movement physics dynamically.
 
 ## Requirements
 
@@ -77,6 +82,8 @@ exec-once = ~/.config/hypr/UserScripts/infinite-desktop.sh
 - **Panning (Mouse):** Hold `SUPER + ALT + Left Click` and move the mouse.
 - **Panning (Touchpad):** Hold `SUPER + ALT` and slide your fingers on the touchpad (no click required).
 - **Navigation:** Press `SUPER + ALT + Up/Down/Left/Right Arrow` to fly directly to the nearest window located in that visual direction.
+- **Pseudo-Fullscreen:** Press `SUPER + ALT + SPACE` or `SUPER + ALT + F` to toggle floating, scale, and center the active window.
+- **Invert Panning:** Run `infinite-desktop-toggle.sh` to toggle inverted panning coordinates on the fly.
 
 ## License
 
