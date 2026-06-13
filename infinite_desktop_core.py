@@ -11,7 +11,8 @@ import socket
 
 kbd_dev = sys.argv[1]
 mouse_dev = sys.argv[2]
-speed = float(sys.argv[3])
+mouse_speed = float(sys.argv[3])
+trackpad_speed = float(sys.argv[4]) if len(sys.argv) > 4 else mouse_speed
 EVENT_SIZE = struct.calcsize('llHHi')
 
 EV_KEY = 1
@@ -147,6 +148,11 @@ def change_focus(direction):
     if current_time - last_nav_time < NAV_COOLDOWN:
         return
     last_nav_time = current_time
+
+    # FIX: Paksa update cache ke Hyprland real-time sebelum pindah pakai panah keyboard
+    # Ini yang mencegah layout mental/jump karena pakai koordinat lama
+    update_cache()
+
     try:
         with cache_lock:
             workspace_id = cached_workspace_id
@@ -329,9 +335,9 @@ def mouse_reader(dev_path):
                     if super_pressed and alt_pressed and btn_left:
                         sign = -1 if read_inverted() else 1
                         if code == REL_X:
-                            acc_x += value * speed * sign
+                            acc_x += value * mouse_speed * sign
                         elif code == REL_Y:
-                            acc_y += value * speed * sign
+                            acc_y += value * mouse_speed * sign
                         wakeup_event.set()
                     elif btn_left:
                         refresh_event.set()
@@ -342,13 +348,13 @@ def mouse_reader(dev_path):
                             if last_abs_x is not None:
                                 diff = value - last_abs_x
                                 if abs(diff) < 1500:
-                                    acc_x += diff * speed * sign * 0.15
+                                    acc_x += diff * trackpad_speed * sign * 0.5
                             last_abs_x = value
                         elif code == ABS_Y:
                             if last_abs_y is not None:
                                 diff = value - last_abs_y
                                 if abs(diff) < 1500:
-                                    acc_y += diff * speed * sign * 0.15
+                                    acc_y += diff * trackpad_speed * sign * 0.5
                             last_abs_y = value
                         wakeup_event.set()
                     elif btn_left:
@@ -536,15 +542,24 @@ def get_all_mice():
 
 update_cache()
 
-keyboards = get_all_keyboards() if kbd_dev == "auto" else [kbd_dev]
-mice = get_all_mice() if mouse_dev == "auto" else [mouse_dev]
+active_keyboards = set()
+active_mice = set()
 
-for kb in keyboards:
-    threading.Thread(target=kbd_reader, args=(kb,), daemon=True).start()
+def hotplug_monitor():
+    while True:
+        current_kbds = set(get_all_keyboards() if kbd_dev == "auto" else [kbd_dev])
+        current_mice = set(get_all_mice() if mouse_dev == "auto" else [mouse_dev])
+        new_kbds = current_kbds - active_keyboards
+        for kb in new_kbds:
+            active_keyboards.add(kb)
+            threading.Thread(target=kbd_reader, args=(kb,), daemon=True).start()
+        new_mice = current_mice - active_mice
+        for m in new_mice:
+            active_mice.add(m)
+            threading.Thread(target=mouse_reader, args=(m,), daemon=True).start()
+        time.sleep(2.0)
 
-for m in mice:
-    threading.Thread(target=mouse_reader, args=(m,), daemon=True).start()
-
+threading.Thread(target=hotplug_monitor, daemon=True).start()
 threading.Thread(target=cache_manager, daemon=True).start()
 threading.Thread(target=hyprland_event_listener, daemon=True).start()
 
