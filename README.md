@@ -72,7 +72,7 @@ Integrate the daemon into your Hyprland initialization files (e.g., `Startup_App
 
 ```hyprlang
 # Launch the infinite desktop daemon
-exec-once = ~/.config/hypr/UserScripts/infinite-desktop.sh
+exec-once = python ~/.config/hypr/UserScripts/infinite_desktop_core.py auto auto 1.0
 ```
 
 *Tip: For the cleanest aesthetic experience, consider disabling or lowering the `windowsMove` animation duration in your Hyprland decoration rules to eliminate rubber-banding or trailing effects during quick panning actions.*

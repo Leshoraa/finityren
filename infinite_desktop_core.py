@@ -71,55 +71,6 @@ panning = False
 is_animating = False
 dragged_window_addr = None
 
-def detect_keyboard():
-    ignore_words = ['mouse', 'optical', 'system control', 'consumer control']
-    real_keyboard = None
-    for dev in sorted(glob.glob('/dev/input/event*')):
-        try:
-            with open('/sys/class/input/' + os.path.basename(dev) + '/device/name') as f:
-                name = f.read().strip().lower()
-            if any(word in name for word in ignore_words):
-                continue
-            if 'keyboard' in name or 'kbd' in name or 'gaming keyboard' in name:
-                with open('/sys/class/input/' + os.path.basename(dev) + '/device/capabilities/ev') as f:
-                    caps = int(f.read().strip(), 16)
-                if caps & 0x1:
-                    real_keyboard = dev
-                    break
-        except:
-            continue
-    if not real_keyboard:
-        for dev in sorted(glob.glob('/dev/input/event*')):
-            try:
-                with open('/sys/class/input/' + os.path.basename(dev) + '/device/name') as f:
-                    name = f.read().strip().lower()
-                if 'optical mouse keyboard' in name:
-                    continue
-                if 'keyboard' in name or 'kbd' in name:
-                    with open('/sys/class/input/' + os.path.basename(dev) + '/device/capabilities/ev') as f:
-                        caps = int(f.read().strip(), 16)
-                    if caps & 0x1:
-                        real_keyboard = dev
-                        break
-            except:
-                continue
-    return real_keyboard
-
-def detect_mouse():
-    touchpad = None
-    mouse = None
-    for dev in sorted(glob.glob('/dev/input/event*')):
-        try:
-            with open('/sys/class/input/' + os.path.basename(dev) + '/device/name') as f:
-                name = f.read().strip().lower()
-            if 'touchpad' in name:
-                touchpad = dev
-            elif 'mouse' in name and 'keyboard' not in name and not mouse:
-                mouse = dev
-        except:
-            continue
-    return touchpad if touchpad else mouse
-
 def read_inverted():
     try:
         with open(STATE_FILE) as f:
@@ -167,10 +118,13 @@ def pan_to_window(floating_windows, target_addr, center_x, center_y):
         monitor_bottom_y = mon['y'] + (mon['height'] / scale)
     else:
         monitor_bottom_y = center_y * 2.0
+        
     target_center_x = target_window['at'][0] + target_window['size'][0] / 2.0
-    target_bottom_y = target_window['at'][1] + target_window['size'][1]
+    target_center_y = target_window['at'][1] + target_window['size'][1] / 2.0
+
     dx = int(round(center_x - target_center_x))
-    dy = int(round((monitor_bottom_y - BOTTOM_MARGIN) - target_bottom_y))
+    dy = int(round(center_y - target_center_y))
+    
     if dx == 0 and dy == 0:
         if not is_protected_app(target_window):
             subprocess.Popen(['hyprctl', 'dispatch', 'focuswindow', f'address:{target_addr}'], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
@@ -269,10 +223,10 @@ def change_focus(direction):
     except:
         pass
 
-def kbd_reader():
+def kbd_reader(dev_path):
     global super_pressed, alt_pressed, ctrl_pressed
     try:
-        fd = open(kbd_dev, 'rb')
+        fd = open(dev_path, 'rb')
     except:
         return
     while True:
@@ -349,12 +303,12 @@ def kbd_reader():
         except:
             break
 
-def mouse_reader():
+def mouse_reader(dev_path):
     global acc_x, acc_y, btn_left
     last_abs_x = None
     last_abs_y = None
     try:
-        fd = open(mouse_dev, 'rb')
+        fd = open(dev_path, 'rb')
     except:
         return
     while True:
@@ -558,22 +512,39 @@ def hyprland_event_listener():
         except:
             time.sleep(1.0)
 
-if kbd_dev == "auto":
-    detected = detect_keyboard()
-    if not detected:
-        sys.exit(1)
-    kbd_dev = detected
+def get_all_keyboards():
+    kbds = []
+    for dev in sorted(glob.glob('/dev/input/event*')):
+        try:
+            with open('/sys/class/input/' + os.path.basename(dev) + '/device/name') as f:
+                name = f.read().strip().lower()
+            if 'keyboard' in name or 'kbd' in name or 'receiver' in name or 'at translated' in name:
+                kbds.append(dev)
+        except: pass
+    return list(set(kbds))
 
-if mouse_dev == "auto":
-    detected = detect_mouse()
-    if not detected:
-        sys.exit(1)
-    mouse_dev = detected
+def get_all_mice():
+    mice = []
+    for dev in sorted(glob.glob('/dev/input/event*')):
+        try:
+            with open('/sys/class/input/' + os.path.basename(dev) + '/device/name') as f:
+                name = f.read().strip().lower()
+            if 'touchpad' in name or 'mouse' in name or 'receiver' in name:
+                mice.append(dev)
+        except: pass
+    return list(set(mice))
 
 update_cache()
 
-threading.Thread(target=kbd_reader, daemon=True).start()
-threading.Thread(target=mouse_reader, daemon=True).start()
+keyboards = get_all_keyboards() if kbd_dev == "auto" else [kbd_dev]
+mice = get_all_mice() if mouse_dev == "auto" else [mouse_dev]
+
+for kb in keyboards:
+    threading.Thread(target=kbd_reader, args=(kb,), daemon=True).start()
+
+for m in mice:
+    threading.Thread(target=mouse_reader, args=(m,), daemon=True).start()
+
 threading.Thread(target=cache_manager, daemon=True).start()
 threading.Thread(target=hyprland_event_listener, daemon=True).start()
 
